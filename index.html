@@ -253,21 +253,25 @@
         </div>
     </div>
 
-    <t>
+    <script>
         // URL Web App Google Apps Script Anda
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzCIodqlPAYVvEU33nz_-BdMeNYH5RTpuwL-Mwb2A2avy4B2zZaWqdItGsPQDAtJoS3ZQ/exec";
 
-        // Fungsi Helper untuk memanggil Backend Google Apps Script via Fetch
+        // Fungsi Helper Menggunakan URLSearchParams Agar Lolos Blokir CORS
         async function callGAS(actionName, payloadData) {
             try {
+                const formData = new URLSearchParams();
+                formData.append("action", actionName);
+                formData.append("data", JSON.stringify(payloadData));
+
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: actionName, data: payloadData })
+                    body: formData
                 });
                 return await response.json();
             } catch (err) {
                 console.error("Gagal terhubung ke server:", err);
-                return { success: false, message: "Koneksi ke server backend gagal." };
+                return { success: false, message: "Koneksi ke server backend gagal: " + err.message };
             }
         }
 
