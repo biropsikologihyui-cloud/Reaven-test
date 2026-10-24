@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Online Raven Progressive Matrices (SPM/APM)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for exporting results to PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Prevent text selection during test */
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* Hide scrollbars for clean UI while keeping functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between unselectable">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2 rounded-lg font-bold text-lg flex items-center justify-center w-10 h-10 shadow">
+                    RPM
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 text-base sm:text-lg leading-tight">Raven Progressive Matrices</h1>
+                    <p class="text-xs text-slate-500">Aplikasi Tes Psikologi Online</p>
+                </div>
+            </div>
+
+            <!-- User Status / Header Info -->
+            <div id="header-user-info" class="hidden flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <div id="nav-user-name" class="font-semibold text-sm text-slate-700">Nama User</div>
+                    <div id="nav-user-role" class="text-xs text-slate-500 capitalize">Role</div>
+                </div>
+                <button onclick="logout()" class="text-slate-500 hover:text-red-600 p-2 rounded-lg hover:bg-slate-100 transition" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= VIEW 1: LOGIN ================= -->
+        <section id="view-login" class="max-w-md mx-auto my-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 text-brand-600 mb-4 text-2xl">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Masuk Aplikasi</h2>
+                <p class="text-sm text-slate-500 mt-1">Silakan login sesuai akun Anda</p>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl mb-6 text-sm font-medium">
+                <button id="btn-role-peserta" type="button" onclick="switchLoginRole('peserta')" class="py-2 rounded-lg transition text-slate-700 shadow bg-white font-semibold">
+                    <i class="fa-solid fa-user-graduate mr-2"></i>Peserta
+                </button>
+                <button id="btn-role-admin" type="button" onclick="switchLoginRole('admin')" class="py-2 rounded-lg transition text-slate-500 hover:text-slate-700">
+                    <i class="fa-solid fa-user-shield mr-2"></i>Admin
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="hidden" id="login-role" value="peserta">
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="login-username" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition text-sm" placeholder="Masukkan username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                        <input type="password" id="login-password" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition text-sm" placeholder="Masukkan password">
+                    </div>
+                </div>
+
+                <div id="login-error" class="hidden text-red-500 text-xs bg-red-50 p-3 rounded-lg border border-red-100 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="login-error-msg">Username atau password salah!</span>
+                </div>
+
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-brand-500/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>Masuk Sekarang</span>
+                    <i class="fa-solid fa-arrow-right text-sm"></i>
+                </button>
+            </form>
+        </section>
+
+
+        <!-- ================= VIEW 2: PESERTA DASHBOARD / INSTRUCTIONS ================= -->
+        <section id="view-peserta-dash" class="hidden max-w-3xl mx-auto space-y-6">
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+                <div class="flex items-center space-x-4 mb-6 pb-6 border-b border-slate-100">
+                    <div class="w-14 h-14 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800" id="dash-user-name">Nama Peserta</h2>
+                        <p class="text-sm text-slate-500">ID / NIM: <span id="dash-user-nim" class="font-semibold text-slate-700">-</span></p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-file-contract text-brand-600"></i> Petunjuk Pelaksanaan Tes
+                    </h3>
+                    
+                    <ul class="space-y-2.5 text-sm text-slate-600 pl-2">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-circle-check text-green-500 mt-0.5"></i>
+                            <span>Tes terdiri dari <strong>60 Soal Pattern Matrix</strong> yang terbagi dalam 5 Bagian (A, B, C, D, E).</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-clock text-brand-500 mt-0.5"></i>
+                            <span>Total waktu pengerjaan adalah <strong>35 Menit</strong> secara terus-menerus.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-list-ol text-brand-500 mt-0.5"></i>
+                            <span>Sub A & B menyediakan pilihan <strong>1-6</strong>, sedangkan Sub C, D, & E pilihan <strong>1-8</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-shield-halved text-amber-500 mt-0.5"></i>
+                            <span><strong>Sistem Anti-Kecurangan Aktif:</strong> Pindah tab/minimize/keluar fullscreen lebih dari 3x akan memicu <i>Auto-Submit Diskualifikasi</i>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-floppy-disk text-blue-500 mt-0.5"></i>
+                            <span>Sistem menyimpan jawaban secara instan. Jika koneksi terputus/refresh, Anda dapat melanjutkan kembali.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Active Test Status / Action -->
+                <div id="test-status-container" class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div id="test-status-badge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600">
+                        Status: Belum Memulai
+                    </div>
+                    <button id="btn-start-test" onclick="startTestProcess()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-green-600/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Mulai Tes Sekarang</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= VIEW 3: TEST INTERFACE (60 SOAL) ================= -->
+        <section id="view-test" class="hidden space-y-4">
+            <!-- Top Control Bar -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <span id="current-section-badge" class="bg-brand-600 text-white text-xs font-bold px-3 py-1 rounded-md">
+                        SUBTEST A
+                    </span>
+                    <span class="text-sm font-bold text-slate-700">
+                        Soal <span id="current-question-num">1</span> dari 60
+                    </span>
+                </div>
+
+                <!-- Timer & Strike Counter -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1.5 bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-semibold" title="Jumlah Pelanggaran Fokus">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Pelanggaran: <span id="strike-count">0</span>/3</span>
+                    </div>
+
+                    <div class="flex items-center space-x-2 bg-slate-900 text-white px-4 py-1.5 rounded-xl font-mono text-base font-bold shadow-inner">
+                        <i class="fa-solid fa-hourglass-half text-amber-400 text-sm animate-pulse"></i>
+                        <span id="timer-display">35:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Test Layout: Image Left/Top, Options Right/Bottom -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Question Image Box -->
+                <div class="lg:col-span-8 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center min-h-[350px] relative">
+                    <div class="absolute top-3 right-3">
+                        <button onclick="openZoomModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> Perbesar Gambar
+                        </button>
+                    </div>
+
+                    <!-- Matrix Question Image -->
+                    <div class="w-full max-w-xl my-4 flex items-center justify-center overflow-hidden rounded-xl bg-slate-50 p-2 border border-slate-100">
+                        <img id="question-img" src="" alt="Soal Raven Matrix" class="max-h-[380px] object-contain transition-transform duration-200" onerror="this.onerror=null; this.src='https://placehold.co/500x350/e2e8f0/475569?text=Gambar+Soal+Raven';">
+                    </div>
+                    
+                    <p class="text-xs text-slate-400 text-center">Pilihlah salah satu potongan gambar dari opsi jawaban yang paling tepat untuk melengkapi matriks di atas.</p>
+                </div>
+
+                <!-- Answer Options & Navigation Sidebar -->
+                <div class="lg:col-span-4 space-y-6 flex flex-col justify-between">
+                    <!-- Answer Buttons Grid -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Pilihan Jawaban</h4>
+                        <div id="options-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2.5">
+                            <!-- Injected dynamically based on subtest (1-6 or 1-8) -->
+                        </div>
+                    </div>
+
+                    <!-- Question Navigation Map -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Navigasi Soal</h4>
+                                <span class="text-xs text-slate-500"><span id="answered-count">0</span>/60 Terisi</span>
+                            </div>
+                            
+                            <!-- 60 Boxes Grid -->
+                            <div id="nav-grid" class="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-6 gap-1.5 max-h-[180px] overflow-y-auto p-1 no-scrollbar border rounded-xl border-slate-100 bg-slate-50">
+                                <!-- Injected dynamically 1-60 -->
+                            </div>
+                        </div>
+
+                        <!-- Prev / Next Controls -->
+                        <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+                            <button id="btn-prev-q" onclick="navigateQuestion(-1)" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-arrow-left"></i> SEBELUM
+                            </button>
+                            <button id="btn-next-q" onclick="navigateQuestion(1)" class="py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm transition flex items-center justify-center gap-1.5">
+                                SELANJUT <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Finish Button -->
+                        <button onclick="confirmFinishTest()" class="w-full mt-3 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-double"></i> Selesaikan Tes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= VIEW 4: ADMIN DASHBOARD ================= -->
+        <section id="view-admin" class="hidden space-y-6">
+            <!-- Admin Header -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Portal Instruktur / Admin</h2>
+                    <p class="text-sm text-slate-500">Kelola data akun peserta dan pantau hasil ujian psikotes.</p>
+                </div>
+                <button onclick="openUserModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition shadow flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Tambah Peserta Baru
+                </button>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-slate-800" id="stat-total-peserta">0</div>
+                        <div class="text-xs text-slate-500 font-medium">Total Peserta Terdaftar</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-slate-800" id="stat-selesai">0</div>
+                        <div class="text-xs text-slate-500 font-medium">Tes Selesai Evaluasi</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-hourglass"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-slate-800" id="stat-pending">0</div>
+                        <div class="text-xs text-slate-500 font-medium">Belum / Dalam Proses Tes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Data Table: Accounts & Test Results -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 text-base">Daftar Peserta & Hasil Ujian</h3>
+                    <input type="text" id="admin-search-input" onkeyup="renderAdminTable()" placeholder="Cari nama/username/NIM..." class="px-3.5 py-1.5 text-xs rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-brand-500 w-48 sm:w-64">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                                <th class="p-4">Peserta</th>
+                                <th class="p-4">NIM / ID</th>
+                                <th class="p-4">Status Tes</th>
+                                <th class="p-4">Skor Total (IQ)</th>
+                                <th class="p-4">Rincian Subtest</th>
+                                <th class="p-4">Waktu Mulai/Selesai</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= VIEW 5: TEST RESULT DETAILS / CERTIFICATE ================= -->
+        <section id="view-result" class="hidden max-w-4xl mx-auto space-y-6">
+            <div class="no-print flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="backFromResults()" class="text-slate-600 hover:text-slate-800 font-semibold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> Print / Cetak
+                    </button>
+                    <button onclick="exportResultPDF()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Printable Certificate Document Box -->
+            <div id="pdf-container" class="bg-white p-8 sm:p-12 rounded-2xl shadow-md border border-slate-200 space-y-8">
+                <!-- Document Header -->
+                <div class="text-center pb-6 border-b-2 border-slate-800">
+                    <h2 class="text-2xl font-bold uppercase tracking-wider text-slate-900">Laporan Hasil Ujian Psikotes</h2>
+                    <p class="text-sm font-semibold text-brand-600 uppercase tracking-widest mt-1">Raven Progressive Matrices (SPM/APM)</p>
+                </div>
+
+                <!-- User Meta Grid -->
+                <div class="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <span class="text-slate-500 block text-xs">Nama Peserta:</span>
+                        <strong id="res-name" class="text-slate-800 text-base">Budi Santoso</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-xs">Nomor Peserta / NIM:</span>
+                        <strong id="res-nim" class="text-slate-800">123456</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-xs">Tanggal Pelaksanaan:</span>
+                        <span id="res-date" class="text-slate-800 font-medium">-</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-xs">Status Pengerjaan:</span>
+                        <span id="res-status" class="font-bold text-green-600">Selesai Normal</span>
+                    </div>
+                </div>
+
+                <!-- Main Highlight Score Box -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                    <div class="bg-brand-50 border border-brand-100 p-6 rounded-2xl">
+                        <div class="text-xs uppercase font-bold text-brand-600 tracking-wider">Total Skor</div>
+                        <div id="res-total-score" class="text-4xl font-extrabold text-brand-700 my-1">0 / 60</div>
+                        <div class="text-xs text-slate-500">Jawaban Benar</div>
+                    </div>
+
+                    <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl">
+                        <div class="text-xs uppercase font-bold text-indigo-600 tracking-wider">Estimasi IQ</div>
+                        <div id="res-iq-estimate" class="text-4xl font-extrabold text-indigo-700 my-1">100</div>
+                        <div class="text-xs text-indigo-500 font-medium" id="res-percentile">Percentile: 50th</div>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl">
+                        <div class="text-xs uppercase font-bold text-emerald-600 tracking-wider">Kategori Kapasitas</div>
+                        <div id="res-category" class="text-xl font-extrabold text-emerald-800 my-2">Rata-Rata</div>
+                        <div class="text-xs text-slate-500">Intellectual Capacity</div>
+                    </div>
+                </div>
+
+                <!-- Subtest Score Breakdown Table -->
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-3 text-sm">Rincian Perolehan Skor Per Sub-Tes</h4>
+                    <div class="grid grid-cols-5 gap-2 text-center text-xs">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-500">SUB A</div>
+                            <div id="res-sub-a" class="text-lg font-bold text-slate-800 mt-1">0/12</div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-500">SUB B</div>
+                            <div id="res-sub-b" class="text-lg font-bold text-slate-800 mt-1">0/12</div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-500">SUB C</div>
+                            <div id="res-sub-c" class="text-lg font-bold text-slate-800 mt-1">0/12</div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-500">SUB D</div>
+                            <div id="res-sub-d" class="text-lg font-bold text-slate-800 mt-1">0/12</div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-500">SUB E</div>
+                            <div id="res-sub-e" class="text-lg font-bold text-slate-800 mt-1">0/12</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item-by-item Detail Answer Grid -->
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-2 text-sm">Matriks Jawaban Peserta (1-60)</h4>
+                    <div id="res-answers-matrix" class="grid grid-cols-10 gap-1.5 text-center font-mono text-xs">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Footer Signatures -->
+                <div class="pt-12 flex justify-between items-end text-xs text-slate-500 border-t border-slate-200">
+                    <div>
+                        <p>Dokumen ini dihasilkan secara otomatis oleh sistem</p>
+                        <p>Aplikasi Tes Online Raven Matrices</p>
+                    </div>
+                    <div class="text-center w-48">
+                        <p class="mb-12">Instruktur / Pemeriksa,</p>
+                        <p class="font-bold text-slate-800 underline">( Tanda Tangan & Stempel )</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-400 no-print">
+        &copy; 2026 Online Raven Progressive Matrices Application. All rights reserved.
+    </footer>
+
+
+    <!-- MODAL 1: ADD / EDIT PESERTA (ADMIN) -->
+    <div id="modal-user" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-base" id="modal-user-title">Tambah Peserta Baru</h3>
+                <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="saveUserForm(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="form-user-index" value="-1">
+                <div>
+                    <label class="font-bold text-slate-600 mb-1 block">Nama Lengkap</label>
+                    <input type="text" id="form-user-name" required class="w-full p-2.5 rounded-lg border outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-600 mb-1 block">Nomor Peserta / NIM / NIP</label>
+                    <input type="text" id="form-user-nim" required class="w-full p-2.5 rounded-lg border outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-600 mb-1 block">Username</label>
+                    <input type="text" id="form-user-uname" required class="w-full p-2.5 rounded-lg border outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-600 mb-1 block">Password</label>
+                    <input type="text" id="form-user-pass" required class="w-full p-2.5 rounded-lg border outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2 border-t">
+                    <button type="button" onclick="closeUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 2: IMAGE ZOOM MODAL -->
+    <div id="modal-zoom" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full bg-white rounded-2xl p-4 flex flex-col items-center">
+            <button onclick="closeZoomModal()" class="absolute top-3 right-3 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 p-2 rounded-full w-9 h-9 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h4 class="text-sm font-bold text-slate-700 mb-3">Tampilan Gambar Diperbesar</h4>
+            <img id="zoom-img-target" src="" class="max-h-[80vh] object-contain rounded-lg">
+        </div>
+    </div>
+
+
+    <!-- MODAL 3: CHEATING WARNING DIALOG -->
+    <div id="modal-warning" class="hidden fixed inset-0 z-50 bg-red-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl border-2 border-red-500">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800">PERINGATAN PELANGGARAN!</h3>
+            <p class="text-xs text-slate-600">
+                Sistem mendeteksi bahwa Anda meninggalkan layar ujian (switch tab / minimize / keluar fullscreen).
+            </p>
+            <div class="p-3 bg-red-50 rounded-xl border border-red-200 text-sm font-bold text-red-700">
+                Peringatan Ke- <span id="warning-strike-num">1</span> dari 3
+            </div>
+            <p class="text-xs text-slate-500">
+                Jika mencapai 3x pelanggaran, ujian Anda akan otomatis didiskualifikasi dan disubmit!
+            </p>
+            <button onclick="dismissWarningModal()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition">
+                Saya Mengerti & Lanjutkan Ujian
+            </button>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ================= 1. SOAL & ANSWER KEY DATA (60 ITEMS) ================= */
+        const TEST_DATA = [
+            // SET A (1-12)
+            { id: 1, sub: 'A', num: 1, optionsCount: 6, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjO6HWVUA4ohXJbsXGZs3sszcFwQfn4Dt1J0b3pk0wjlomhrRay4Rf6tWqLu2EF5PkRdHGyZ3z81tz-wemZCHlQ0rnbKwJ6f323NmasXF9YvAjgNgO9rmi3ddV5S4NBWD6LjrkUnCdyjwICQ7R9G8dfPeK9bLBtjMQOrZ2u3jty86PGXTBUUaYqUM0cg4s/s704/Screenshot%202026-10-23%20143032.png' },
+            { id: 2, sub: 'A', num: 2, optionsCount: 6, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjTV3TeILuZuNYIFOTngUFlvGwikx_twQLfrH7_ZX_bYn_r_a-UJxOSMcMmxPANfrFVDq0iC1yZy-ZHhWdfRLGLXUnik7mb56fT1EAordUFLJEQtbz5O5tYrDUWLIDSfC9tOY_yCwgtBzI5I10zfAenlhnPrJSgXExKrH1368fVNsMxcs9s6F8yFp1n2N0/s707/Screenshot%202026-10-23%20143053.png' },
+            { id: 3, sub: 'A', num: 3, optionsCount: 6, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi-0pdu4-QdKG7XEMotKrlF-gSB7cr24V0hxz5KHnMw2RUlctE2dRNIj-_hyphenhyphenOTP3ORT9Ax7_v81hGWWwjyRuQg6K7Pv-farBiSlac78e8gO-NQliyjqIgto3pC8kM9HIkEdAokjBXgvtKpaP5NHVzOicP6hZoVzgQfld6XTg49BPMWxKtlLW6v5BYH55pE/s698/Screenshot%202026-10-23%20143102.png' },
+            { id: 4, sub: 'A', num: 4, optionsCount: 6, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEizMPMObaL_ahN8_tgWDoOY_FDbMDRi8lW-r-ZK_dZu3UpXPZuM4mcjJEp8mWBJWs4JwUUOPXnx6F4b21PVYuWMRvHZ6UJWd-h1Cf0quea0merZoGqWR4OuEyg5-r0kJq16YRiFwI9Y7nmP3QhlznYUYlaPBagCPbzEWp5S6FMqUoY8doWDCunNyxkJ9yI/s691/Screenshot%202026-10-23%20143108.png' },
+            { id: 5, sub: 'A', num: 5, optionsCount: 6, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjSfL3J4PmbbyrL7SSz2gORakek-1oBfksMhpThheHnNkIxINBgesVbNC400vVqaCSd1FinHwQpJqLJeOTB3p2ViANgbspN9nYHWsT3SxFYqYrGvG001xAUwL3owFvN70hoUj3vgEn81k29jSlzGxJJiV917G8FPWaoMxJXfw_GXTVNjGm17AKyAgUAnw/s725/Screenshot%202026-10-23%20143126.png' },
+            { id: 6, sub: 'A', num: 6, optionsCount: 6, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhCB16YeZKNymSV-hdW0MPlEauFnJzxlvOFDQ6HWmyI3W1XBqf9pduGwbRVYxb2PHcUQAj04ciadTEBmrSnzT26azVzy_RXUvhcWPpzF1SWa1w3agYeOZgq8AYnQxacyPEAx3Tj0ok_Qhyphenhyphen7QtVp2FXKXiuTAuR1hWqwm90zzGCbRrM3JmA6r28L4HRR4-A/s685/Screenshot%202026-10-23%20143133.png' },
+            { id: 7, sub: 'A', num: 7, optionsCount: 6, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEheqjATniEK6Xm8kqZwmeD_CS6K9CWyFQxOdKHC3L_meXywaK8Q0JXk3pdDhATR4UBdFleF2gM8CqftdrJMACd7L-p7q3QEnCcr01vvigZ1vKrQttAcDjStcItAQuUxKkfLoZJQnp1SasiFZiVVFcXirwTU3wGRSJnut3GPowFeqL5kkQVkJabZD-fkJQU/s711/Screenshot%202026-10-23%20143140.png' },
+            { id: 8, sub: 'A', num: 8, optionsCount: 6, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh8z-t84KZFx894pbd6hgaPAkHPe5a17TyB0-7Fd4-ytsxmqJDA1XqPov46I30vHHZRV-cQ3bKLcsa99261IbkbYjhB04pjt6GchAy3xEkwx6SF9VINJ-oIlU8ns2TdwXsZIQNVKB12x05zqtIvX48vqokkTFTB1UXeH1qMOelc7Qup7-0Oq83Q4hpsomo/s738/Screenshot%202026-10-23%20143148.png' },
+            { id: 9, sub: 'A', num: 9, optionsCount: 6, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjUYMaCmIA0Dl2kpH_OQDiiTRzadoteu6kMP-HECJ6ufwGBQrr61yVlInoGzREOrbeT1yOfEirrh-WD7PCqQoI0AJsy2NMoLJQZ-t49okHiZsoHO9O7nE4bgTqir2-mDBxCod5SoZE7Ts78XpLlWI_7TAl8U6PkonrVLIWjenyVrAmIdwAPBilenXJt670/s722/Screenshot%202026-10-23%20143155.png' },
+            { id: 10, sub: 'A', num: 10, optionsCount: 6, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjqvh9lZa5Z2D9Gi0NbyPc8BS6O-ifxbFe7GNNu0KyUD0x6qu3wAD1TOj9UWgeJnlJ6X0vG-Gfm7_U7oVahMsQiNrr0Flt68jam5dnbRo8644IEtMRf1crwUoKrW_0jPryk7SYV0HDjimyYOjCYAtB7opNqgcjzkuUmaIHC_F_-ldc9u_9YIt8bHEChIY/s320/Screenshot%202026-10-23%20143202.png' },
+            { id: 11, sub: 'A', num: 11, optionsCount: 6, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEij-q5Vyy5AUUVtk3bVfS-HZG4bk_TYzzUhgVU6A1dZB3Htcnbl5F9jwLJJ4E7XcSYTnLKvlMoJ_I9IePjVlfv7elkBuwzI2iHPvGB80U4d5vVJ4JXBFXAdvjwhaAuBGZ-S6SG7r9CGTP0612otRDrdYrvjc9no5cMF5A3-7F7vBJSuzIWQSF5vmTRdRoQ/s320/Screenshot%202026-10-23%20143210.png' },
+            { id: 12, sub: 'A', num: 12, optionsCount: 6, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEghnrPSp_rd8mx-CmWMst5aA0tMGNtH_Exo5jkUKMCFZu5bg491pay7WSKhLk8Gn-Q2XcA17baDggyhpx2BgUu0YnmEY3MpQPZKvyeg5loB5mL49l9tykpbPzDY08px4Hyq-INuxppAExiEbD3bbb1qD5PARUGTOYqLRulpoR1OwcoLPA81R1M6_L7zcYc/s320/Screenshot%202026-10-23%20143218.png' },
+
+            // SET B (13-24)
+            { id: 13, sub: 'B', num: 1, optionsCount: 6, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhokPJSJwDE4KBm_zBS64ufbmrCsR340nrqY1Gmj1b7RNKPIvLkIHPL6MyWGP4w32AXLMAOWQgK6QwG3FFmt8Nmr58B9YXbjJ12rJryGAjssm8XoMhk4ZKzmKJtJ2eUamtKt3oTVN0rFxVehdvPF-B9y1_Yrq8DNj_JVxn8IltNjXYQDhtfj8s-GceIN0U/s320/Screenshot%202026-10-23%20143228.png' },
+            { id: 14, sub: 'B', num: 2, optionsCount: 6, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjCNVazp6D9djWSrUDrvytyI9RUNX7YZIlsrgoU2u2gEayzE0Ss1VVenr1ltvlvXIDvY5nR1ZnajdA3OzMMg4ejPf18fp4F1NHHDEqzOYqC4Svf85rhnWL179eAK5MoPi0_tR3RW89SeUNA3c6DJ_D9oB47ziGRsXBkLZkt1fprIoeCFG3cyzDmQmvlHzw/s320/Screenshot%202026-10-23%20143235.png' },
+            { id: 15, sub: 'B', num: 3, optionsCount: 6, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhj4w7j-AvPHctyT-2uQJwVDnVs1-M0669B_U69fxrMG5fLk47PlUm1MbdSNLF1e6EMR9B7BZOJ_nCAsG_5QjCwiYnuadDEzzzKcGfuerRKWMDX1p9cAMevaFNGFpPob0GvGdcuriL3ihOwent4KyStuq5ucloFp_lSTjUWBzD3Btl-S4dCRr8PV3s6AT4/s320/Screenshot%202026-10-23%20143243.png' },
+            { id: 16, sub: 'B', num: 4, optionsCount: 6, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgfnNz6eWwInMFZGIKytcUvEiFTBJwshz7CXA1eLyqFfQ2STLJCzMo-q8dImbPzS5cpC89BoE8vDSbCWNNeeO5_BaIPjeDuxgbS0Sy6JO0vLwcevmbuPOrEA2dMzv-_mYqkt7WXX3IesckOlk6CyJF4HzNHr__IqEy8uEOxlYKJgN0hL9kjMe5XFgbH7og/s320/Screenshot%202026-10-23%20143305.png' },
+            { id: 17, sub: 'B', num: 5, optionsCount: 6, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjIAkehyiGKVl1TX2aram0Dxb4lXXOFi_g1N-6DdzXLOnHv-lenF8cJl1xM3Pda_NoP-s4gJhaMvexs7N_o_1-HGqlqjigG5cJZ0t_j8iR4L5wsH90buETaVGNMlSrIXrfiaUwBUq0zfQZiXoCwQAyESHiekRN70AoeAYVkq1kqsCan_R4tR2qe4K3tJOs/s320/Screenshot%202026-10-23%20143312.png' },
+            { id: 18, sub: 'B', num: 6, optionsCount: 6, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhG9KYGwpOnNS1NYO9xpQjno-lzK6oPw0d8IcuW9ebiC0YX9LDVzDmxVS3xzOjzxMCd63Y0Y_kg1vrbXx8uD37_-XsyigLY3b7-r81VNvQMQMgTGYlj2ofLLqvmXRLfuwPaqkUOTKMJWYDRcgl_EsqMgynyFXvW7IBtDzkdqAwFwevnH8Ik0wJzTTvWz0M/s320/Screenshot%202026-10-23%20143318.png' },
+            { id: 19, sub: 'B', num: 7, optionsCount: 6, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjBppu7XSjJNTGpQ28UYS49jb5tjrQzLohSE21WVr_CrDlcov3rRhuTWErCN3dPZ-bOWwebtEKuRuShnKZTA37pCZ0yk0nXFs8-hle37G-Df28CdlkYES943D6Lnnsjbs2FyK1njsc-rGiXbslLsQXzOlGKxPveNKKy7aOFAE9Peb9WBMgZazpWGDtMzX4/s320/Screenshot%202026-10-23%20143324.png' },
+            { id: 20, sub: 'B', num: 8, optionsCount: 6, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEimNj_gWUTQAizzU7AX_t94qfcmwph_J16XnnJ4721nqTVEBYeK2jBp6kPk7jf97oO_6tGv_rE_WwZ4jfohd1iaAvrw8gj0wfp0nogJzRvzQpn293OqnJbKan7Wf75gdSlI1goeNAr69UaxQHUYOI3qnPu2h40iwwJFT00XdLDL82-aFIljEo0W_9_w2y8/s320/Screenshot%202026-10-23%20143331.png' },
+            { id: 21, sub: 'B', num: 9, optionsCount: 6, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhPjjVVOu9RoQn46ArZ1IIBzGF9w9hfyqXxDg2aYGm4hI9aJc77IGImDGvDVVFSXMcDkPymeyK_iKS-4zlmuAQUiIG2PZ3IJT9VwZ3OJHP5uoZgn_LEVaQNEnbCJS_yRLCtjG7k72PlfHJ6BVBX6eGy-fTa4YzylKIaLpBNqE7wues8RUCfYzlC5hWYO_8/s320/Screenshot%202026-10-23%20143339.png' },
+            { id: 22, sub: 'B', num: 10, optionsCount: 6, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgWueFyJX_zDJ4TWBT7Nnu_dJnh9hXKQzS4WY2EJfnwsDHfHdsnfo2GCn-VuwB6oJsGZrpT2KC6ga5vQmLYlSQIQ9cjLo_KgZG3jQoyE3geCfbZUpKC82crNAS2jee2JVLdpErPmvbCQwcHjyacrLLEkzelPHXUlZUqyipgp9RG2_ZFJWrjCwQ4zQAsTrQ/s320/Screenshot%202026-10-23%20143348.png' },
+            { id: 23, sub: 'B', num: 11, optionsCount: 6, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieG7vRHDrqfmfjM08RFAECSMXLCcoEZ5jbuag0MhEr58nDU_-Yu3D6HcFHcHKDBOoaezHsxemQpewF1Sxf9JfJuw7zW2nqXnHkQpqV44rIGvF5Tix3_5iygRww_-iy3NvdudvhdQupHPj_EOzssdwh-yGlfOC5bGhMMpd1HpJIUxBJSDkV_IcFc_eUMqU/s320/Screenshot%202026-10-23%20143355.png' },
+            { id: 24, sub: 'B', num: 12, optionsCount: 6, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgF4D_1aWqiXdEV0G9xKJjZylcR84bzYLMF-hS6QFyROQgCu3YI___FVODDIIXztSxaKEcA6Dz7l1Zix3Yn5GQD3excu2ZO4zZljbUe1OQ7G2JpVd7XxNvfUgegcJprHjH2oolvqx-A-otJ5FYYVQHM4bkq_BVDCTAB5KjDISdvpUePpW51FPZzIJIxQTw/s320/Screenshot%202026-10-23%20143405.png' },
+
+            // SET C (25-36)
+            { id: 25, sub: 'C', num: 1, optionsCount: 8, key: 8, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEifJ9lrVEluS70sGNQ9YX3kBzTHctGQPALm-BEZlquEgjtvhDrdwBP65JP-Tv84e1IALibZc-eVsVWQ-abXPRXVVh52mUsIkvQaJ4vQOJy-gHEwM534DeD9Ddai1Wy3x_IsMCuDI4qql3xE8FMRoybC_GtXMziXh8oyeLJ4BEhAPRyHbVUfgLQbVyN7B-k/s320/Screenshot%202026-10-23%20154845.png' },
+            { id: 26, sub: 'C', num: 2, optionsCount: 8, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg5GSnIqGv9vR3dLu0XFYZP3AHPpPqRx4TNyL6fC9IuSSBrMspuumXzHuGX6wop2NfCMtz-A1x2lLmJGsAXIp3G5a2hlw7lnlMp1ZKmRFp6KqUZHu5xY-dMd1Pfos7XjXnB3n2Vg9dxno762pOiST1Y7VEwoFdiWfyVyS4XGPRvcg7hQDSS-qEWLDXQ5QU/s320/Screenshot%202026-10-23%20154854.png' },
+            { id: 27, sub: 'C', num: 3, optionsCount: 8, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhNocOYBDMxFdlXxdZ-Nud_IxHrd2nHn8fZI6eDPHMvUkqobh4jb0Tqf3nLZ_ZSPqshv31au9tP0sM0rK2l7VpAda4wYSJgYIuVHsiWvH_BJd-BWG3ogW-vl-AkZymuA6FR6oOI1eIjRC61XyaINPzwC9x-sI8Oln7p7uFA-RSvYz3kT8WXashUyMaVvbM/s320/Screenshot%202026-10-23%20154908.png' },
+            { id: 28, sub: 'C', num: 4, optionsCount: 8, key: 8, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEipoDHxVzAVavf4BcnLctJg2Pv0r37zXNr9hpjB46Xw0qgL472XHT_wi_ndBozo0c6SEnpQWz8RMmq16w3LyMTdn7eQW4ImrBjDJRnplvpCwgyOa2pv6jtpmNZPM3gITyS5YzqM03wmhYnLguJZvzh0vUrnYDtqShQnT1dOlj-xtKFIQWR-FHUcO71KsJw/s320/Screenshot%202026-10-23%20154914.png' },
+            { id: 29, sub: 'C', num: 5, optionsCount: 8, key: 7, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj3Ip0B2bLaKLkLdaO3qE7BMTaCd8RJqaFoaGBFDQ6tTMt86ExxRBEYhnYz0YxCUNeM-zkvSXoKnL48y4pYa10KFLl7UooANJ9Aq4ogdPCEcI6uk6y0jm3kkzA02LLqRhGfmu6iesx8e2f1RpTSh2PnK1kOl1kTlsW6HbRhI1DnO1kWrWPcBrN3TNnDH6U/s320/Screenshot%202026-10-23%20154921.png' },
+            { id: 30, sub: 'C', num: 6, optionsCount: 8, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiQOPkBRtFOaxbN3zHDjdJ89SQdmk0K-9CBO-bRirsFoUT5VXGcxAQ_po7heaaY671Zqr5s8l-3e0UlZABduM5QWyHOlL7JBnQ9JqoCvRGLrwpnPmqgtYsBLn0Kxh4RV4gaGLtNVEPIUgVbYvxgPV194tyK_VdDiZfmwsz_ynJsV27FFdicXzH4L-PhDMI/s320/Screenshot%202026-10-23%20154929.png' },
+            { id: 31, sub: 'C', num: 7, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhOfzdIU1IPdRuM3SVyvmDiPCNXh3jEA_cN8l86XRUey9lx7a6ZtkGvt5W69YZ_GWWdkEpWiZIACeFOuYk6qwjUqvumq8ckfE5We5-S4LDzS8FUiER8m7J4AMaTBebAuXVkFrYtBmVzOcmzRqHEsDNJo7NsRemKbYFWT0RtIJcpAE1UZuTrjx7Sm8bJtzk/s320/Screenshot%202026-10-23%20154937.png' },
+            { id: 32, sub: 'C', num: 8, optionsCount: 8, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhHL8FpKgY6WxkBJpE2yL5x7w6XnA1CPXO_pkskVfx2fDuPMNh5LlOk3vs1BS6Iyaw5QMz0XSbvWixxR8P0vz076OOu1uZqSDaS6BZ0D48pOnG0-WSFP0DFmyTd32x74Tzh7YdNvfqyBh_rqLXPdOZDGwOw3-QBm19QDNq25FWhyphenhyphenWIyQNgV-CGRW5v81MM/s320/Screenshot%202026-10-23%20154945.png' },
+            { id: 33, sub: 'C', num: 9, optionsCount: 8, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiO-2ycKi2l6Q2sBleZa5ugGZQ4DfjUioWYhGx7usMEan6t-kzf_pawopq4qSic_B6XNp2ixfhmNsKtNK4QCt-cUzh5ffCvcMe75CqSw_YCLlzHjuhriFtmLqh685GNi8Poq5KuAUxRSxsaupTHtuF8u0FL6IQKrIfqtnC-4gm1Qw8DtoyZsbr5Ef-uJ7s/s320/Screenshot%202026-10-23%20155301.png' },
+            { id: 34, sub: 'C', num: 10, optionsCount: 8, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBuatjF9mrfByYf3qnErVDBOUnE3aq41csv-8O6N2R9nfsw-a1tIR0Y9CTW1MT2CMpUTVkjtDqJyfr_gd1R0Kf3kgTXg0hsib0Zrp2DiyQKJLTcPHqnktGhvOOl2krBLai7tLVxYRL1H9tROzyXwFm7TeYkEN26YjHmFkonHiypf3U24VLJFUe19To7gM/s320/Screenshot%202026-10-23%20155308.png' },
+            { id: 35, sub: 'C', num: 11, optionsCount: 8, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg8I0gz2j-hfqOdn9_CFNMT_rUMhEMTXntN09J5ze1LdIHWlsd2Ee62EAXHJzydGJ6Uhs-d-0_7Hqjl8_sjXFFm8uItMiVpnLMiulI9kjM9KRLlYsIIrkwDXmKpGqRWIoFKqle8-_kwYVg2B3y1LLVvLmH1CiuiBDvzbhV0nIqAASx3alvnH3QexS_szEA/s320/Screenshot%202026-10-23%20155335.png' },
+            { id: 36, sub: 'C', num: 12, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhB1npl8YEEr_7xOB7kvh98ZUQQ0OX4yvl_95hr5i7hGOsR_Z3tF3zDwoza4u1axYZ46U_4xQu81Tu_o2fLYeBWfKiamDvb3DUXOE0f8A4R3sRa3foeuo97yhCASZnRcVfROStJh_-pDtVMrfEgx-_YY37MU1PTryWV1_v4OSWz9wOulAQZ6ml6C7kbI2A/s320/Screenshot%202026-10-23%20155342.png' },
+
+            // SET D (37-48)
+            { id: 37, sub: 'D', num: 1, optionsCount: 8, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgW_wTPF_BYCIWXX5FIcvovTHM4SGThJ1QbdwfGSoMXNuVfNtRvnIxwfColuKxY6lsxh8w-X9l4MNtk5xY5NG4r4d2iKNRQqJhlsywiiYKK1I4UrjOfNAObk0-wYss94I3yCgp_SeyRid8Wc3FKRJzok46WBl2L31QG0tQITNFlXNchDbZtTgFBShHiHGs/s320/Screenshot%202026-10-23%20155355.png' },
+            { id: 38, sub: 'D', num: 2, optionsCount: 8, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjK3VaeE3ca6O3PavmbPxBQtqhn-94x1fF4KAePFw4PAY9e8MjrjhUABa9tVI6ulZh_yWpTyEGnW3qp1guthcSQQPIhxzjwghBGA_zOFZ9zcSKqmBr1bRAmm7jJW0WICTJnPKp7zkYudUOLtFlUbPFs7XYA64K6Vw8aWaFi6zKAJ1EIsqUf3UjzZ7vm0Gk/s320/Screenshot%202026-10-23%20155402.png' },
+            { id: 39, sub: 'D', num: 3, optionsCount: 8, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgaM2cs7kaer5neQ2xgc6MXEdutzMil_tstsr5I4U-xLVhwLJCBfqRo8hRm0vRZVcqy3372omxZLZ4FPf7GHTGBesp88LjO1BHQfQqFf6qftbxa2mC1tazFkRzYKv6v81xT3bkrwsVz4KD_3DhIM9RCm9zgj9nAO2n6SrFLFiKoZ075U3okJ6Uooqvwv7o/s320/Screenshot%202026-10-23%20155408.png' },
+            { id: 40, sub: 'D', num: 4, optionsCount: 8, key: 7, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhVn-GSF7ZMO4U7HgkIdE7S9_5xPymwEqeuwKXSfW6OsqW1DvUqNyY6qWx_cWoUPSTv_8uUSz9mpYFitn0JqOlBi1xxmWrdYkMzbfGvSpKjiT1NorWNYIP8GRpnGO0uvcWSrVFOlgZjPQgKhsjr0Ncd3LCmOSkim1rtvKZCvTrfzSwIgh4ApZ15h-bMHEg/s320/Screenshot%202026-10-23%20155416.png' },
+            { id: 41, sub: 'D', num: 5, optionsCount: 8, key: 8, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj8rmhdzK0yc23lCZnKDwM-rogJzdFZTk2hdgH3OB66KH4Cf-YRyldjDOcAQQZeVEyyAH81Pjoky1rV5OhfFRgFobB5Xws-JW_0FjGpPUYOjUY3nRps_rYxFaj8hYZOfdGI5fVs4xhb2pRQGJOgorGiETXK9zvxa4xy3T14OMhAigy-Sw6l_BKATBv7mak/s320/Screenshot%202026-10-23%20155423.png' },
+            { id: 42, sub: 'D', num: 6, optionsCount: 8, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj5Do-NpLBvLTtwdo9wKxj-SIkPGaom6cOyiJeti5CExhBrVZjxLvphXpMkMYrLKogfZfYZMpex2_WN1kTNrQebxxTPgCQ6CrnoS2BJ8OFCcaQSlBOY0mpOVy2x_LqQkIySqtdR9mVGa4JUGY6D14v52kQiCQEU4D2gKz8R5fLKpkndBoV0t5y5hyW_3So/s320/Screenshot%202026-10-23%20155432.png' },
+            { id: 43, sub: 'D', num: 7, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1CgdtCnfkKFzK8VTxB9vnyoBGaRjDCY-MvRld9JSZFlEjr-01x48G8WJMrYfy2pVi5cAzwk7MiAIWu9JnQM3FDAghpwYQ5DIZpVTB4WNNyenhb7dEvjPpsM5W7NNUPn1qda-KfVdPfPDP3GrN3fmUaoqLgcbi4d_PRdqBOCG9adLlzjvx6xzWNFoGwo8/s320/Screenshot%202026-10-23%20160932.png' },
+            { id: 44, sub: 'D', num: 8, optionsCount: 8, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhV3gVXu2hU2mCwT7UfL637ZbfdiGaLYIb4t08YfDyqTytsC8H718le_95Brx96jIh4kSMeOiAi_wQU1OkdbtgMI1nLuxr9LYSQHWivfNTtkbFGPwwbv5-1IELNw0wPx_fPG5wYFNr_GlSM-8_uF1GfWbysBMKqqQKojsCVOJnfaIN848OM-BEbg6JBzro/s320/Screenshot%202026-10-23%20160938.png' },
+            { id: 45, sub: 'D', num: 9, optionsCount: 8, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiQr2QzjwwDuX5Al7BJqmZvpfjOL7n7n8eYkutS7ZkQMpreeoJDWbeqE_oJnxo_vKfmEFBqX1iAWEvizthUH05PAhoBSaNMb0aer2mLs-TQDuwaXqTcD3llcdvUHU-51d7LehGcGVOFPIAsCmDhlNP1KkJoITmbf6Z3shH2dU6cjoNZx6cQJvjzVtioPQA/s320/Screenshot%202026-10-23%20160957.png' },
+            { id: 46, sub: 'D', num: 10, optionsCount: 8, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjzXGlXSxk0qlYQKrF77mA-tcrdtlEis0BUgl5QsAhG8lF2rz2Lwum3N29yv7tds2QMLHO7MFXo4Fp7VhfwP9NbMMhid51iYn29yx85OuFYiRm9EgXrNVrHJVBCXP010AxKZOLYv21JafqA5VZK-7Ac_r3IOTzjgsk05SxjUhxoZsd_FseFHD-PkiYzedU/s320/Screenshot%202026-10-23%20161005.png' },
+            { id: 47, sub: 'D', num: 11, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiKek1Oc6jDqaYhoq1ITcJTuKwwE2ft25Sf2gZMfdT_ptnaiqx34uK2e0V8GNiwkvxdHUKQlZPzLvogbZ31aCR3hfwMAf-GTh5b9zh97XoaND2v0ByBc-vqBojWkUPdGHIOEhHkS8I5gRB7d9c9dEGAzfY86JCw03IkztaqzfD9NTy6mX2bP-nccUuo2WM/s320/Screenshot%202026-10-23%20161012.png' },
+            { id: 48, sub: 'D', num: 12, optionsCount: 8, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhHp_WLT8kUiH-a8IfEoqLJ4UkzAPaDILhR3D3gGDtOnCsBpzXi_xfvDmU7aN2eYvOFv_c7VcM604T2ZCBoGI5Xflxk0v720S8O4f5XxNU-qlzytdzr3b2fENT5sepkeHfXXCBnQ39DLuxR1tmjsRseOqRgOgm1G6_tkLTzPtXDE-XO26W1llussX7BoIo/s320/Screenshot%202026-10-23%20161018.png' },
+
+            // SET E (49-60)
+            { id: 49, sub: 'E', num: 1, optionsCount: 8, key: 7, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhKIThSVU6J_O3_538fBSIr4BYfbG2nPJa6mA6uozWs2-FQmvSBuSn3ePcoIUbjwfMSiZqk3HjS1XFVAq4KSRF1-Fo78DmkX1M_uZvkS-e6A7_c5FF3a2k4Q1EgGnNSXw59PV6CdDCyIsK_2T0EI4ICHotmpiZAOGdWnoIZOPdbqSYFcQ71gX5CFbnbvJQ/s320/Screenshot%202026-10-23%20161026.png' },
+            { id: 50, sub: 'E', num: 2, optionsCount: 8, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj-Bbjugj-w9AymR5-yDdtG7LjocjIIClXXAOoQsqe31udaQC-GuhwJBIyx11Yb_CGk4XehajN_c4zRElWakhvHc6Srfo0coZdJQyusiXUN9OdxMEhE1djyQUXDv_2TdevzAPQsAm9Cl_WONebqEY-9tw_YFWU9s0jU6HeVyGTNk0yG2UHs5MYBI_KXWHU/s320/Screenshot%202026-10-23%20161033.png' },
+            { id: 51, sub: 'E', num: 3, optionsCount: 8, key: 8, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjMaS78yz_WT9QJGXQ0oEjqxKKaLqdaexUonPQWdNlkSr3HJu0Xx94s10cDbC6Ow9gbsU1VBLUPrTu4ejLQ8fJ94VRk2x_aQ44qCkU53ULb8QHF5oKEG0zs6pS0rKBxuYBzJXhTnuZSqMG4U1WsU5m9o7FuDQ63qiGb7d_zmoSCO5bvmgCvXPxCWX5lBMk/s320/Screenshot%202026-10-23%20161040.png' },
+            { id: 52, sub: 'E', num: 4, optionsCount: 8, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjVdb_1DtpwGbOODVKl5wh2-1-bokVx6BjTH6RMY9AK_fKPYZGS8l-YUQdHltadKMbg9qe3yRHoClx5ODnryOiypbT2KlSdmXiV7BKcj7dmPTa30SGK5fas6vmdPq_5eBS-qkM3q_9Ato7k-swVrG7ygyiqftR0wsFvuYRqhbRdHQfy_a-nIV00s44ShdM/s320/Screenshot%202026-10-23%20161125.png' },
+            { id: 53, sub: 'E', num: 5, optionsCount: 8, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjZb4OTP9gCs_oqSAwqrZSvJbM6RmIeiOG911SYvcvn0NmDGM0dWeHTEu5GSTXXHeRRms8K5-n30DBmglNIax31UzLVWMm1zL2vKjmceBcdxFDD3tfJ1bOvMYoxQIkLSOoPt-IexawrDzRB0K7Nb98qL2AFYcNRIOA0eCGRCpjl6vT_tdmcqrsZ9WjwWUY/s320/Screenshot%202026-10-23%20161132.png' },
+            { id: 54, sub: 'E', num: 6, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj4yXD6-bp4PKHwxLI4DX_aOoIK7YNrGlROAHy06I4jqYLHggCkUKI0QouvuQd444FLBg4PAAqIy551or3q47pt2ry4oTHPZjoUkJeMcYbKNyajj7jSWnFWuFgQDP_otSyEg3GXpih6xOcPe5TXdRC799xhgkbkFjoZO3QVGHpCc1M7SY1zZALmgd0EKcM/s320/Screenshot%202026-10-23%20161201.png' },
+            { id: 55, sub: 'E', num: 7, optionsCount: 8, key: 1, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiuVHpjYssaOggle_lRp-rlgMIwVOaTuZ5sNjKDy0tzHuYBbRhWTmMdj0On6C3taJi4Js3VXyH4OERmaUHoBA8Q0mrIiQJqkiRME_D1UffB0Hlxh3L5Tnp2tc5gasJFD74Ls-XxPU15ZtuFWlxEOxuB1EXys3A3tv09IyZVOiUCncz9467Gkv6T6bpvC7E/s320/Screenshot%202026-10-23%20161210.png' },
+            { id: 56, sub: 'E', num: 8, optionsCount: 8, key: 6, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEigkmY4u_2v7xwYXgo4guRq29nLH9SVWfaCKMN0AHh5gJBUmlai73owJDl57-4A7ejw4WlBlOfC6i6Jrx5i-iEBpINSfVgII16M0YGkn3tYFyNzBTLa1qHmpeXUo0wIYVz5A-fkCbgKxJDKydOnhi09zjpu3D4a0fv2JIHolReW9p6R9voDtQP8sltF-xU/s320/Screenshot%202026-10-23%20161216.png' },
+            { id: 57, sub: 'E', num: 9, optionsCount: 8, key: 3, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhf1OLrdBbV6DId9UqW4aLcdRiPGT5kd4HDLST1c6uKPUMAjj8r28MfnzDuwyRs4y2G3BM98Dy85MNkCSScLtFlxa5dqKuR-b7u2M9zYVYpqV5cKJ4DlpUTBdshMgcxtAm_vEzkOkw9pA0GjBDpoiTHhQ6JExCojnxz-t_s8FuUf6dZjJb1w6vrNA60Sb4/s320/Screenshot%202026-10-23%20161230.png' },
+            { id: 58, sub: 'E', num: 10, optionsCount: 8, key: 2, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiaRH-txduxYy0gdJU-PXCs7_bS7u8Juf7tvMY0HG9w4m93mGubxvCWIt828yQDHJPxT3LxcyTVxzgEMLNKhyphenhyphenruPhgb43nqOVu99q4H57pA4UUwk9aUjC_0vQhC9XM0jEW5HmVMM4zz7267BHFo1jr6myAHUMGCDSfx7Hol0_bsjLbUv5ckUPasuAsTNBA/s320/Screenshot%202026-10-23%20161243.png' },
+            { id: 59, sub: 'E', num: 11, optionsCount: 8, key: 4, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiUhV32UNlnOEvUowCXaXoTQ4tu23-37flEE0pQBK6FUJMBto5OQuvWOPc2AlebBdEJY0FjOMBdQXR9O3W0k5eMoLamIDM-RkIiWDkzGcW-LOvi3jW1u8B6HRh7tJp7xCgb_gIYtIfFAKFWzd3imfAY56LhdV9R26DDtifXgtfon6nT-CvV3UpyfFZy5so/s320/Screenshot%202026-10-23%20161252.png' },
+            { id: 60, sub: 'E', num: 12, optionsCount: 8, key: 5, img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYavx3hk8GrvRXH4McH2bX_GBSv5iqEIWaBjCpw1p1QABE9fG_kjBQILdq-foHbvGnXmsxhAf5zj02Vcsuh65WOWv1MKo1ouPgSOO-SeXeq20tPCI9VQIDbFKrrp3R6H9IUOYbFy0qKTYwj2u1Q2Yco3v8uFozFWclZMxDGF5olb7FQJO-ol76anJy0kw/s320/Screenshot%202026-10-23%20161259.png' }
+        ];
+
+        // Standard Raven SPM IQ Norm Table Conversion Mapping
+        function calculateIQ(totalScore) {
+            if (totalScore <= 10) return { iq: 70, percentile: '< 5th', category: 'Sangat Rendah (Intellectually Defective)' };
+            if (totalScore <= 20) return { iq: 80, percentile: '10th', category: 'Di Bawah Rata-Rata (Below Average)' };
+            if (totalScore <= 30) return { iq: 90, percentile: '25th', category: 'Rata-Rata Bawah (Average)' };
+            if (totalScore <= 40) return { iq: 100, percentile: '50th', category: 'Rata-Rata (Intellectually Average)' };
+            if (totalScore <= 48) return { iq: 110, percentile: '75th', category: 'Di Atas Rata-Rata (Above Average)' };
+            if (totalScore <= 54) return { iq: 120, percentile: '90th', category: 'Unggul / Superior' };
+            if (totalScore <= 57) return { iq: 128, percentile: '95th', category: 'Sangat Superior' };
+            return { iq: 135, percentile: '> 99th', category: 'Genius / Highly Superior' };
+        }
+
+        /* ================= 2. INITIALIZATION & DEFAULT STATE ================= */
+        const DEFAULT_USERS = [
+            { username: 'peserta1', password: 'pass123', name: 'Budi Santoso', nim: '2026001', role: 'peserta' },
+            { username: 'admin', password: 'admin123', name: 'Administrator Instruktur', nim: 'ADM-01', role: 'admin' }
+        ];
+
+        let currentUser = null;
+        let currentQuestionIdx = 0;
+        let timerInterval = null;
+        let timeRemainingSeconds = 35 * 60; // 35 Minutes
+        let testAnswers = {}; // { 1: 4, 2: 5, ... }
+        let strikeCount = 0;
+        let isTestRunning = false;
+
+        window.onload = function() {
+            initLocalStorage();
+            checkActiveSession();
+            preventCheatingEvents();
+        };
+
+        function initLocalStorage() {
+            if (!localStorage.getItem('rpm_users')) {
+                localStorage.setItem('rpm_users', JSON.stringify(DEFAULT_USERS));
+            }
+            if (!localStorage.getItem('rpm_results')) {
+                localStorage.setItem('rpm_results', JSON.stringify([]));
+            }
+        }
+
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('rpm_users')) || [];
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('rpm_users', JSON.stringify(users));
+        }
+
+        function getResults() {
+            return JSON.parse(localStorage.getItem('rpm_results')) || [];
+        }
+
+        function saveResults(results) {
+            localStorage.setItem('rpm_results', JSON.stringify(results));
+        }
+
+        /* Helper function to quick fill login for testing */
+        function quickFill(uname, pass, role) {
+            switchLoginRole(role);
+            document.getElementById('login-username').value = uname;
+            document.getElementById('login-password').value = pass;
+        }
+
+        /* ================= 3. AUTHENTICATION & SESSION MANAGEMENT ================= */
+        function switchLoginRole(role) {
+            document.getElementById('login-role').value = role;
+            const btnPeserta = document.getElementById('btn-role-peserta');
+            const btnAdmin = document.getElementById('btn-role-admin');
+
+            if (role === 'peserta') {
+                btnPeserta.className = "py-2 rounded-lg transition text-slate-700 shadow bg-white font-semibold";
+                btnAdmin.className = "py-2 rounded-lg transition text-slate-500 hover:text-slate-700";
+            } else {
+                btnAdmin.className = "py-2 rounded-lg transition text-slate-700 shadow bg-white font-semibold";
+                btnPeserta.className = "py-2 rounded-lg transition text-slate-500 hover:text-slate-700";
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const uname = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+            const role = document.getElementById('login-role').value;
+
+            const users = getUsers();
+            const found = users.find(u => u.username === uname && u.password === pass && u.role === role);
+
+            if (found) {
+                document.getElementById('login-error').classList.add('hidden');
+                currentUser = found;
+                localStorage.setItem('rpm_session', JSON.stringify(found));
+                applySessionUI();
+            } else {
+                document.getElementById('login-error-msg').innerText = "Username, password, atau role salah!";
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function checkActiveSession() {
+            const saved = localStorage.getItem('rpm_session');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                applySessionUI();
+            } else {
+                showView('view-login');
+            }
+        }
+
+        function logout() {
+            if (isTestRunning) {
+                if (!confirm("Tes sedang berlangsung. Yakin ingin keluar? Kemajuan Anda tersimpan.")) return;
+            }
+            clearInterval(timerInterval);
+            isTestRunning = false;
+            currentUser = null;
+            localStorage.removeItem('rpm_session');
+            document.getElementById('header-user-info').classList.add('hidden');
+            showView('view-login');
+        }
+
+        function applySessionUI() {
+            if (!currentUser) return;
+
+            document.getElementById('header-user-info').classList.remove('hidden');
+            document.getElementById('nav-user-name').innerText = currentUser.name;
+            document.getElementById('nav-user-role').innerText = currentUser.role;
+
+            if (currentUser.role === 'admin') {
+                showView('view-admin');
+                renderAdminTable();
+            } else {
+                showView('view-peserta-dash');
+                document.getElementById('dash-user-name').innerText = currentUser.name;
+                document.getElementById('dash-user-nim').innerText = currentUser.nim;
+                checkPesertaTestState();
+            }
+        }
+
+        function showView(viewId) {
+            ['view-login', 'view-peserta-dash', 'view-test', 'view-admin', 'view-result'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        /* ================= 4. TEST LOGIC & TIMING ================= */
+        function checkPesertaTestState() {
+            const results = getResults();
+            const myResult = results.find(r => r.username === currentUser.username);
+            const badge = document.getElementById('test-status-badge');
+            const btn = document.getElementById('btn-start-test');
+
+            if (myResult) {
+                badge.className = "text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700";
+                badge.innerText = "Status: Ujian Telah Selesai (" + myResult.totalScore + "/60)";
+                btn.innerHTML = `<i class="fa-solid fa-square-poll-vertical"></i> <span>Lihat Hasil Ujian</span>`;
+                btn.onclick = function() { displayResultDetail(myResult); };
+            } else {
+                // Check if active progress in localStorage
+                const savedProgress = localStorage.getItem('rpm_progress_' + currentUser.username);
+                if (savedProgress) {
+                    badge.className = "text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700";
+                    badge.innerText = "Status: Tes Terhenti / Belum Selesai";
+                    btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> <span>Lanjutkan Tes</span>`;
+                } else {
+                    badge.className = "text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600";
+                    badge.innerText = "Status: Belum Memulai";
+                    btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Mulai Tes Sekarang</span>`;
+                }
+                btn.onclick = startTestProcess;
+            }
+        }
+
+        function startTestProcess() {
+            // Request Fullscreen
+            requestFullScreen();
+
+            // Load saved state or init new
+            const savedProgress = localStorage.getItem('rpm_progress_' + currentUser.username);
+            if (savedProgress) {
+                const parsed = JSON.parse(savedProgress);
+                testAnswers = parsed.answers || {};
+                timeRemainingSeconds = parsed.timeRemaining || (35 * 60);
+                strikeCount = parsed.strikeCount || 0;
+            } else {
+                testAnswers = {};
+                timeRemainingSeconds = 35 * 60;
+                strikeCount = 0;
+            }
+
+            isTestRunning = true;
+            showView('view-test');
+            currentQuestionIdx = 0;
+            renderQuestion();
+            renderNavGrid();
+            startTimer();
+        }
+
+        function requestFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeRemainingSeconds--;
+                updateTimerDisplay();
+                saveCurrentTestProgress();
+
+                if (timeRemainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Waktu pengerjaan telah habis! Sistem akan mengirimkan jawaban Anda.");
+                    submitTest('Waktu Habis');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeRemainingSeconds / 60);
+            const secs = timeRemainingSeconds % 60;
+            document.getElementById('timer-display').innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function saveCurrentTestProgress() {
+            if (!isTestRunning || !currentUser) return;
+            const progress = {
+                answers: testAnswers,
+                timeRemaining: timeRemainingSeconds,
+                strikeCount: strikeCount,
+                lastSaved: new Date().toISOString()
+            };
+            localStorage.setItem('rpm_progress_' + currentUser.username, JSON.stringify(progress));
+        }
+
+        /* ================= 5. QUESTION RENDER & NAVIGATION ================= */
+        function renderQuestion() {
+            const q = TEST_DATA[currentQuestionIdx];
+
+            document.getElementById('current-section-badge').innerText = `SUBTEST ${q.sub}`;
+            document.getElementById('current-question-num').innerText = currentQuestionIdx + 1;
+            document.getElementById('question-img').src = q.img;
+            document.getElementById('strike-count').innerText = strikeCount;
+
+            // Render Options (1-6 or 1-8)
+            const optionsContainer = document.getElementById('options-grid');
+            optionsContainer.innerHTML = '';
+
+            const selectedOption = testAnswers[q.id];
+
+            for (let i = 1; i <= q.optionsCount; i++) {
+                const isSelected = selectedOption === i;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `py-3 rounded-xl font-bold text-base transition border flex items-center justify-center gap-1 ${
+                    isSelected 
+                    ? 'bg-brand-600 text-white border-brand-600 shadow-md ring-2 ring-brand-300' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`;
+                btn.innerHTML = `<span>${i}</span>`;
+                btn.onclick = function() { selectAnswer(q.id, i); };
+                optionsContainer.appendChild(btn);
+            }
+
+            // Update answered counter
+            document.getElementById('answered-count').innerText = Object.keys(testAnswers).length;
+            updateNavGridHighlight();
+        }
+
+        function selectAnswer(questionId, optionNum) {
+            testAnswers[questionId] = optionNum;
+            saveCurrentTestProgress();
+            renderQuestion();
+
+            // Auto-advance to next question if available
+            if (currentQuestionIdx < TEST_DATA.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIdx++;
+                    renderQuestion();
+                }, 180);
+            }
+        }
+
+        function navigateQuestion(delta) {
+            const newIdx = currentQuestionIdx + delta;
+            if (newIdx >= 0 && newIdx < TEST_DATA.length) {
+                currentQuestionIdx = newIdx;
+                renderQuestion();
+            }
+        }
+
+        function renderNavGrid() {
+            const navGrid = document.getElementById('nav-grid');
+            navGrid.innerHTML = '';
+
+            TEST_DATA.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `nav-box-${idx}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => {
+                    currentQuestionIdx = idx;
+                    renderQuestion();
+                };
+                navGrid.appendChild(btn);
+            });
+            updateNavGridHighlight();
+        }
+
+        function updateNavGridHighlight() {
+            TEST_DATA.forEach((q, idx) => {
+                const btn = document.getElementById(`nav-box-${idx}`);
+                if (!btn) return;
+
+                const isCurrent = idx === currentQuestionIdx;
+                const isAnswered = testAnswers[q.id] !== undefined;
+
+                if (isCurrent) {
+                    btn.className = 'w-full aspect-square rounded-lg font-bold text-xs bg-brand-600 text-white border-2 border-brand-800 shadow';
+                } else if (isAnswered) {
+                    btn.className = 'w-full aspect-square rounded-lg font-semibold text-xs bg-emerald-500 text-white border border-emerald-600';
+                } else {
+                    btn.className = 'w-full aspect-square rounded-lg font-medium text-xs bg-white text-slate-600 border border-slate-200 hover:bg-slate-100';
+                }
+            });
+        }
+
+        /* ================= 6. SUBMIT & SCORING SYSTEM ================= */
+        function confirmFinishTest() {
+            const answered = Object.keys(testAnswers).length;
+            const remaining = 60 - answered;
+
+            let msg = `Anda telah menjawab ${answered} dari 60 soal.`;
+            if (remaining > 0) {
+                msg += ` Masih ada ${remaining} soal belum dijawab!`;
+            }
+            msg += "\nApakah Anda yakin ingin menyelesaikan tes sekarang?";
+
+            if (confirm(msg)) {
+                submitTest('Selesai Normal');
+            }
+        }
+
+        function submitTest(statusCause = 'Selesai Normal') {
+            clearInterval(timerInterval);
+            isTestRunning = false;
+
+            // Calculate Sub-scores & Total Score
+            let totalScore = 0;
+            const subScores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+
+            TEST_DATA.forEach(q => {
+                const userAns = testAnswers[q.id];
+                if (userAns === q.key) {
+                    totalScore++;
+                    subScores[q.sub]++;
+                }
+            });
+
+            const iqInfo = calculateIQ(totalScore);
+
+            const resultObj = {
+                username: currentUser.username,
+                name: currentUser.name,
+                nim: currentUser.nim,
+                date: new Date().toLocaleString('id-ID'),
+                totalScore: totalScore,
+                subScores: subScores,
+                iqEstimate: iqInfo.iq,
+                percentile: iqInfo.percentile,
+                category: iqInfo.category,
+                answers: testAnswers,
+                status: statusCause,
+                strikeCount: strikeCount,
+                timeSpentSeconds: (35 * 60) - timeRemainingSeconds
+            };
+
+            // Save to LocalStorage results list
+            const results = getResults().filter(r => r.username !== currentUser.username);
+            results.push(resultObj);
+            saveResults(results);
+
+            // Clean up active progress
+            localStorage.removeItem('rpm_progress_' + currentUser.username);
+
+            // Display Certificate Result
+            displayResultDetail(resultObj);
+        }
+
+        function displayResultDetail(res) {
+            showView('view-result');
+
+            document.getElementById('res-name').innerText = res.name;
+            document.getElementById('res-nim').innerText = res.nim;
+            document.getElementById('res-date').innerText = res.date;
+            document.getElementById('res-status').innerText = res.status;
+
+            document.getElementById('res-total-score').innerText = `${res.totalScore} / 60`;
+            document.getElementById('res-iq-estimate').innerText = res.iqEstimate;
+            document.getElementById('res-percentile').innerText = `Percentile: ${res.percentile}`;
+            document.getElementById('res-category').innerText = res.category;
+
+            document.getElementById('res-sub-a').innerText = `${res.subScores.A}/12`;
+            document.getElementById('res-sub-b').innerText = `${res.subScores.B}/12`;
+            document.getElementById('res-sub-c').innerText = `${res.subScores.C}/12`;
+            document.getElementById('res-sub-d').innerText = `${res.subScores.D}/12`;
+            document.getElementById('res-sub-e').innerText = `${res.subScores.E}/12`;
+
+            // Matrix Answers Render 1-60
+            const matrixBox = document.getElementById('res-answers-matrix');
+            matrixBox.innerHTML = '';
+
+            TEST_DATA.forEach((q, idx) => {
+                const userAns = res.answers[q.id];
+                const isCorrect = userAns === q.key;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-1.5 rounded border ${
+                    isCorrect 
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
+                    : userAns 
+                        ? 'bg-red-50 border-red-300 text-red-800' 
+                        : 'bg-slate-100 border-slate-200 text-slate-400'
+                }`;
+                itemDiv.innerHTML = `
+                    <div class="font-bold text-[10px] text-slate-500">${idx+1}</div>
+                    <div class="font-bold">${userAns || '-'}</div>
+                `;
+                matrixBox.appendChild(itemDiv);
+            });
+        }
+
+        function backFromResults() {
+            if (currentUser.role === 'admin') {
+                showView('view-admin');
+                renderAdminTable();
+            } else {
+                showView('view-peserta-dash');
+                checkPesertaTestState();
+            }
+        }
+
+        /* ================= 7. ANTI-CHEATING & RESILIENCE ================= */
+        function preventCheatingEvents() {
+            // Prevent Right-Click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+
+            // Prevent Copy / Cut / Select / Key Combos (F12, Ctrl+Shift+I, Ctrl+U)
+            document.addEventListener('keydown', e => {
+                if (e.key === 'F12' || 
+                   (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
+                   (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 'c' || e.key === 'C'))) {
+                    e.preventDefault();
+                }
+            });
+
+            // Tab-Switching & Blur Detection
+            window.addEventListener('blur', () => {
+                if (isTestRunning) {
+                    registerCheatingStrike();
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && isTestRunning) {
+                    registerCheatingStrike();
+                }
+            });
+        }
+
+        function registerCheatingStrike() {
+            strikeCount++;
+            document.getElementById('strike-count').innerText = strikeCount;
+            document.getElementById('warning-strike-num').innerText = strikeCount;
+            saveCurrentTestProgress();
+
+            if (strikeCount >= 3) {
+                document.getElementById('modal-warning').classList.add('hidden');
+                alert("Anda didiskualifikasi karena telah 3x meninggalkan layar tes!");
+                submitTest('Diskualifikasi Curang');
+            } else {
+                document.getElementById('modal-warning').classList.remove('hidden');
+            }
+        }
+
+        function dismissWarningModal() {
+            document.getElementById('modal-warning').classList.add('hidden');
+            requestFullScreen();
+        }
+
+        /* ================= 8. ADMIN DASHBOARD & USER MANAGEMENT ================= */
+        function renderAdminTable() {
+            const users = getUsers().filter(u => u.role === 'peserta');
+            const results = getResults();
+            const searchKeyword = (document.getElementById('admin-search-input')?.value || '').toLowerCase();
+
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            let finishedCount = 0;
+            let pendingCount = 0;
+
+            const filteredUsers = users.filter(u => 
+                u.name.toLowerCase().includes(searchKeyword) || 
+                u.username.toLowerCase().includes(searchKeyword) || 
+                u.nim.toLowerCase().includes(searchKeyword)
+            );
+
+            filteredUsers.forEach((user, idx) => {
+                const res = results.find(r => r.username === user.username);
+                if (res) finishedCount++; else pendingCount++;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+                let statusBadge = `<span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-semibold">Belum Tes</span>`;
+                if (res) {
+                    if (res.status.includes('Diskualifikasi')) {
+                        statusBadge = `<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[11px] font-semibold">Diskualifikasi</span>`;
+                    } else {
+                        statusBadge = `<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-[11px] font-semibold">Selesai</span>`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-semibold text-slate-800">
+                        ${user.name}
+                        <div class="text-[11px] font-normal text-slate-400">@${user.username}</div>
+                    </td>
+                    <td class="p-4 font-mono text-slate-600">${user.nim}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4">
+                        ${res ? `<strong class="text-brand-600">${res.totalScore}/60</strong> (${res.iqEstimate} IQ)` : '-'}
+                    </td>
+                    <td class="p-4 text-[11px] font-mono text-slate-500">
+                        ${res ? `A:${res.subScores.A} B:${res.subScores.B} C:${res.subScores.C} D:${res.subScores.D} E:${res.subScores.E}` : '-'}
+                    </td>
+                    <td class="p-4 text-slate-500 text-[11px]">${res ? res.date : '-'}</td>
+                    <td class="p-4 text-center">
+                        <div class="flex items-center justify-center space-x-1.5">
+                            ${res ? `
+                                <button onclick="viewUserResult('${user.username}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" title="Detail Hasil">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button onclick="resetUserTest('${user.username}')" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100" title="Reset Ujian">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="editUserAccount('${user.username}')" class="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200" title="Edit Akun">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteUserAccount('${user.username}')" class="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="Hapus Akun">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('stat-total-peserta').innerText = users.length;
+            document.getElementById('stat-selesai').innerText = finishedCount;
+            document.getElementById('stat-pending').innerText = pendingCount;
+        }
+
+        function openUserModal(index = -1) {
+            document.getElementById('form-user-index').value = index;
+            document.getElementById('modal-user-title').innerText = index === -1 ? "Tambah Peserta Baru" : "Edit Akun Peserta";
+            
+            if (index === -1) {
+                document.getElementById('form-user-name').value = '';
+                document.getElementById('form-user-nim').value = '';
+                document.getElementById('form-user-uname').value = '';
+                document.getElementById('form-user-uname').disabled = false;
+                document.getElementById('form-user-pass').value = '';
+            }
+            document.getElementById('modal-user').classList.remove('hidden');
+        }
+
+        function closeUserModal() {
+            document.getElementById('modal-user').classList.add('hidden');
+        }
+
+        function saveUserForm(e) {
+            e.preventDefault();
+            const idx = parseInt(document.getElementById('form-user-index').value);
+            const name = document.getElementById('form-user-name').value.trim();
+            const nim = document.getElementById('form-user-nim').value.trim();
+            const uname = document.getElementById('form-user-uname').value.trim();
+            const pass = document.getElementById('form-user-pass').value.trim();
+
+            const users = getUsers();
+
+            if (idx === -1) {
+                // Check duplicate username
+                if (users.some(u => u.username === uname)) {
+                    alert("Username sudah digunakan! Gunakan username lain.");
+                    return;
+                }
+                users.push({ username: uname, password: pass, name: name, nim: nim, role: 'peserta' });
+            } else {
+                users[idx].name = name;
+                users[idx].nim = nim;
+                users[idx].password = pass;
+            }
+
+            saveUsers(users);
+            closeUserModal();
+            renderAdminTable();
+        }
+
+        function editUserAccount(uname) {
+            const users = getUsers();
+            const idx = users.findIndex(u => u.username === uname);
+            if (idx !== -1) {
+                const u = users[idx];
+                document.getElementById('form-user-index').value = idx;
+                document.getElementById('form-user-name').value = u.name;
+                document.getElementById('form-user-nim').value = u.nim;
+                document.getElementById('form-user-uname').value = u.username;
+                document.getElementById('form-user-uname').disabled = true;
+                document.getElementById('form-user-pass').value = u.password;
+                
+                document.getElementById('modal-user-title').innerText = "Edit Akun Peserta";
+                document.getElementById('modal-user').classList.remove('hidden');
+            }
+        }
+
+        function deleteUserAccount(uname) {
+            if (confirm(`Yakin menghapus akun peserta @${uname}? Data hasil ujian juga akan terhapus.`)) {
+                let users = getUsers().filter(u => u.username !== uname);
+                let results = getResults().filter(r => r.username !== uname);
+                saveUsers(users);
+                saveResults(results);
+                localStorage.removeItem('rpm_progress_' + uname);
+                renderAdminTable();
+            }
+        }
+
+        function resetUserTest(uname) {
+            if (confirm(`Reset status tes untuk @${uname}? Peserta dapat mengambil tes ulang.`)) {
+                let results = getResults().filter(r => r.username !== uname);
+                saveResults(results);
+                localStorage.removeItem('rpm_progress_' + uname);
+                renderAdminTable();
+            }
+        }
+
+        function viewUserResult(uname) {
+            const res = getResults().find(r => r.username === uname);
+            if (res) {
+                displayResultDetail(res);
+            }
+        }
+
+        /* ================= 9. MODALS & EXPORT HELPERS ================= */
+        function openZoomModal() {
+            const currentSrc = document.getElementById('question-img').src;
+            document.getElementById('zoom-img-target').src = currentSrc;
+            document.getElementById('modal-zoom').classList.remove('hidden');
+        }
+
+        function closeZoomModal() {
+            document.getElementById('modal-zoom').classList.add('hidden');
+        }
+
+        function exportResultPDF() {
+            const element = document.getElementById('pdf-container');
+            const name = document.getElementById('res-name').innerText;
+            const opt = {
+                margin:       0.3,
+                filename:     `Hasil_Tes_Raven_${name.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
